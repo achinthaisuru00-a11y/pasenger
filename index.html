@@ -35,15 +35,26 @@
   *{ box-sizing: border-box; }
   body{ margin: 0; background: var(--paper); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; line-height: 1.45; }
   button, input, select{ font-family: inherit; }
+  button{ min-height: 36px; }
   :focus-visible{ outline: 2.5px solid var(--ink); outline-offset: 2px; border-radius: 6px; }
   .app{ max-width: 480px; margin: 0 auto; min-height: 100dvh; background: var(--paper); display: flex; flex-direction: column; position: relative; }
-  .appbar{ display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 18px 20px 16px; background: var(--ink); color: #fff; }
+  .appbar{ display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 18px 20px 16px; background: var(--ink); color: #fff; position: relative; z-index: 20; }
   .appbar__brand{ font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; }
   .appbar__brand span{ color: var(--amber); }
-  .appbar__loc{ display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: #C9D2E3; }
-  .appbar__loc svg{ width: 13px; height: 13px; }
-  .wallet-btn{ width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.08); color: #fff; display: grid; place-items: center; cursor: pointer; }
-  .wallet-btn svg{ width: 16px; height: 16px; }
+  .appbar__loc{ display: flex; align-items: center; gap: 5px; font-size: 0.72rem; color: #C9D2E3; background: none; border: none; padding: 0; cursor: pointer; }
+  .appbar__loc svg{ width: 13px; height: 13px; flex-shrink: 0; }
+  .appbar__actions{ display: flex; align-items: center; gap: 8px; }
+  .wallet-btn, .icon-btn{ width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.18); background: rgba(255,255,255,0.08); color: #fff; display: grid; place-items: center; cursor: pointer; position: relative; }
+  .wallet-btn svg, .icon-btn svg{ width: 16px; height: 16px; }
+  .notif-dot{ position: absolute; top: 5px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--coral); border: 1.5px solid var(--ink); display: none; }
+  .notif-dot.is-visible{ display: block; }
+  .notif-panel{ position: absolute; top: 62px; right: 16px; width: min(300px, calc(100% - 32px)); background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--shadow-card); border: 1px solid var(--line); z-index: 30; display: none; max-height: 320px; overflow-y: auto; }
+  .notif-panel.is-open{ display: block; }
+  .notif-panel__head{ padding: 12px 14px; font-weight: 700; font-size: 0.82rem; border-bottom: 1px solid var(--line); }
+  .notif-item{ padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 0.78rem; color: var(--slate); }
+  .notif-item:last-child{ border-bottom: none; }
+  .notif-item__time{ font-size: 0.68rem; color: var(--slate-dim); margin-top: 2px; }
+  .notif-empty{ padding: 18px 14px; text-align: center; font-size: 0.78rem; color: var(--slate-dim); }
   .content{ flex: 1; padding: 16px 16px 30px; display: flex; flex-direction: column; gap: 16px; }
   .card{ background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); border: 1px solid var(--line); padding: 18px; }
   .card__eyebrow{ font-size: 0.68rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 4px; }
@@ -51,40 +62,68 @@
   .card__eyebrow--ride{ color: var(--ride); }
   .card__eyebrow-row{ display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
   .partner-badge{ font-size: 0.66rem; font-weight: 700; color: var(--ride); background: var(--ride-soft); padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .demo-badge{ font-size: 0.62rem; font-weight: 700; color: var(--slate); background: var(--line); padding: 2px 8px; border-radius: 999px; white-space: nowrap; letter-spacing: 0.03em; text-transform: uppercase; }
   .card__title{ font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; margin: 0 0 3px; }
   .card__desc{ margin: 0 0 14px; font-size: 0.82rem; color: var(--slate); }
-  .link-btn{ background: none; border: none; padding: 0; font-size: 0.78rem; font-weight: 600; color: var(--coral); cursor: pointer; text-decoration: underline; }
-  .planner-fields{ display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-  .field-stack{ flex: 1; display: flex; flex-direction: column; gap: 8px; }
+  .link-btn{ background: none; border: none; padding: 0; font-size: 0.78rem; font-weight: 600; color: var(--coral); cursor: pointer; text-decoration: underline; min-height: auto; }
+  .planner-fields{ display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .field-stack{ flex: 1; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
   .field{ position: relative; border: 1.5px solid var(--line); border-radius: var(--radius-md); padding: 9px 12px; display: flex; flex-direction: column; }
   .field label{ font-size: 0.64rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--slate-dim); }
-  .field select{ border: none; background: transparent; font-size: 0.9rem; font-weight: 600; color: var(--ink); padding: 2px 0 0; appearance: none; }
+  .field select, .field input{ border: none; background: transparent; font-size: 0.9rem; font-weight: 600; color: var(--ink); padding: 2px 0 0; appearance: none; width: 100%; }
   .swap-btn{ flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--surface); display: grid; place-items: center; cursor: pointer; color: var(--ink); }
   .swap-btn svg{ width: 16px; height: 16px; }
+  .swap-btn:active{ transform: rotate(180deg); transition: transform 0.25s ease; }
+  .field-error{ display: none; font-size: 0.74rem; color: var(--coral); font-weight: 600; margin: -2px 0 10px; }
+  .field-error.is-visible{ display: block; }
   .plan-btn{ width: 100%; padding: 12px; border: none; border-radius: var(--radius-md); background: var(--ink); color: #fff; font-family: var(--font-display); font-weight: 700; font-size: 0.9rem; cursor: pointer; }
   .journey-summary{ display: none; align-items: center; gap: 8px; margin-top: 12px; padding: 9px 12px; background: var(--amber-soft); border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 600; color: #7A4E00; }
   .journey-summary.is-visible{ display: flex; }
   .journey-summary svg{ width: 15px; height: 15px; flex-shrink: 0; }
   #results{ display: none; flex-direction: column; gap: 16px; }
   #results.is-visible{ display: flex; }
+
+  /* Journey status stepper */
+  .journey-stepper{ display: flex; align-items: flex-start; gap: 0; margin-bottom: 4px; overflow-x: auto; padding-bottom: 2px; }
+  .journey-stepper::-webkit-scrollbar{ display: none; }
+  .jstep{ display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; min-width: 62px; position: relative; }
+  .jstep::before{ content: ''; position: absolute; top: 9px; left: -50%; width: 100%; height: 2px; background: var(--line); z-index: 0; }
+  .jstep:first-child::before{ display: none; }
+  .jstep.is-done::before{ background: var(--green); }
+  .jstep__dot{ width: 19px; height: 19px; border-radius: 50%; background: var(--surface); border: 2px solid var(--line); display: grid; place-items: center; z-index: 1; font-size: 0.6rem; font-weight: 700; color: var(--slate-dim); }
+  .jstep.is-done .jstep__dot{ background: var(--green); border-color: var(--green); color: #fff; }
+  .jstep.is-current .jstep__dot{ background: var(--amber); border-color: var(--amber); color: var(--ink); box-shadow: 0 0 0 4px var(--amber-soft); }
+  .jstep__label{ font-size: 0.6rem; text-align: center; color: var(--slate-dim); font-weight: 600; line-height: 1.2; }
+  .jstep.is-current .jstep__label{ color: var(--ink); }
+  .jstep.is-done .jstep__label{ color: var(--green); }
+  .status-banner{ display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding: 9px 12px; background: var(--paper); border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 600; color: var(--ink); }
+
   .filter-chips{ display: flex; gap: 7px; margin-bottom: 12px; flex-wrap: wrap; }
   .filter-chip{ padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); color: var(--slate); font-size: 0.76rem; font-weight: 600; cursor: pointer; }
   .filter-chip.is-active{ border-color: var(--ink); background: var(--ink); color: #fff; }
   .bus-row{ display: flex; align-items: center; gap: 12px; padding: 11px 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--line); margin-bottom: 8px; cursor: pointer; background: var(--surface); }
   .bus-row.is-selected{ border-color: var(--amber); background: var(--amber-soft); }
+  .bus-row.is-disabled{ opacity: 0.55; cursor: default; }
   .bus-row__radio{ width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line); flex-shrink: 0; display: grid; place-items: center; }
   .bus-row.is-selected .bus-row__radio{ border-color: var(--amber); }
   .bus-row__radio-dot{ width: 9px; height: 9px; border-radius: 50%; background: var(--amber); display: none; }
   .bus-row.is-selected .bus-row__radio-dot{ display: block; }
   .bus-row__body{ flex: 1; min-width: 0; }
-  .bus-row__top{ display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+  .bus-row__top{ display: flex; align-items: center; gap: 6px; margin-bottom: 2px; flex-wrap: wrap; }
   .bus-row__label{ font-size: 0.86rem; font-weight: 700; }
   .type-badge{ font-size: 0.62rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; }
   .type-badge--Normal{ background: var(--line); color: var(--slate); }
   .type-badge--Luxury{ background: var(--ride-soft); color: var(--ride); }
   .type-badge--Metro{ background: var(--green-soft); color: var(--green); }
-  .bus-row__meta{ font-size: 0.74rem; color: var(--slate-dim); }
-  .bus-row__eta{ font-family: var(--font-display); font-weight: 700; font-size: 0.92rem; flex-shrink: 0; }
+  .crowd-badge{ font-size: 0.62rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; display: inline-flex; align-items: center; gap: 3px; }
+  .crowd-badge--low{ background: var(--green-soft); color: var(--green); }
+  .crowd-badge--moderate{ background: var(--amber-soft); color: var(--amber-ink); }
+  .crowd-badge--high{ background: var(--coral-soft); color: var(--coral); }
+  .bus-row__meta{ font-size: 0.74rem; color: var(--slate-dim); margin-top: 2px; }
+  .bus-row__right{ display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex-shrink: 0; }
+  .bus-row__eta{ font-family: var(--font-display); font-weight: 700; font-size: 0.92rem; }
+  .bus-row__fare{ font-size: 0.72rem; color: var(--slate-dim); font-weight: 600; }
+  .bus-row__details-btn{ background: none; border: none; padding: 0; font-size: 0.68rem; font-weight: 700; color: var(--ride); cursor: pointer; text-decoration: underline; min-height: auto; }
   .ride-toggle{ display: flex; gap: 8px; margin-bottom: 12px; }
   .ride-toggle button{ flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 9px; border-radius: var(--radius-sm); border: 1.5px solid var(--line); background: var(--surface); color: var(--slate); font-size: 0.82rem; font-weight: 600; cursor: pointer; }
   .ride-toggle button.is-active{ border-color: var(--ride); background: var(--ride-soft); color: var(--ride); }
@@ -96,11 +135,12 @@
   .ride-status__spinner{ width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--ride); animation: spin 0.8s linear infinite; flex-shrink: 0; }
   @keyframes spin{ to{ transform: rotate(360deg); } }
   .ride-status__avatar{ width: 34px; height: 34px; border-radius: 50%; background: var(--ride); color: #fff; display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; font-size: 0.78rem; flex-shrink: 0; }
-  .timeline-meta{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .timeline-meta{ display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
   .route-chip{ display: inline-flex; align-items: center; gap: 7px; background: var(--ink); color: #fff; padding: 5px 10px 5px 6px; border-radius: 999px; font-family: var(--font-display); font-size: 0.78rem; font-weight: 700; }
   .route-chip__num{ background: var(--amber); color: var(--ink); width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 0.72rem; }
   .tap-prompt{ display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px; border: 1.5px dashed var(--amber); border-radius: var(--radius-md); margin-bottom: 16px; }
   .tap-prompt__btn{ flex-shrink: 0; padding: 9px 14px; border: none; border-radius: var(--radius-sm); background: var(--ink); color: #fff; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+  .tap-prompt__btn:disabled{ opacity: 0.5; cursor: default; }
   .boarding-note, .payment-note{ display: none; align-items: center; gap: 9px; margin-bottom: 16px; padding: 10px 12px; background: var(--green-soft); color: var(--green); border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 600; }
   .boarding-note.is-visible, .payment-note.is-visible{ display: flex; }
   .timeline{ position: relative; padding-left: 30px; }
@@ -125,24 +165,93 @@
   .countdown__value{ font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--ride); }
   .modal-overlay{ position: fixed; inset: 0; background: rgba(20,33,61,0.55); z-index: 100; display: none; align-items: flex-end; justify-content: center; }
   .modal-overlay.is-open{ display: flex; }
-  .modal-sheet{ width: 100%; max-width: 480px; background: var(--surface); border-radius: 22px 22px 0 0; padding: 20px; }
+  .modal-sheet{ width: 100%; max-width: 480px; background: var(--surface); border-radius: 22px 22px 0 0; padding: 20px; max-height: 88vh; overflow-y: auto; }
   .modal-sheet__head{ display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
-  .modal-close{ background: none; border: none; font-size: 1.2rem; cursor: pointer; }
+  .modal-close{ background: none; border: none; font-size: 1.2rem; cursor: pointer; min-height: auto; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; }
+  .modal-close:hover{ background: var(--paper); }
   .pay-methods{ display: flex; gap: 10px; margin-bottom: 16px; }
   .pay-method{ flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px; border: 1.5px solid var(--line); border-radius: var(--radius-md); background: var(--surface); color: var(--slate); font-weight: 700; cursor: pointer; }
   .pay-method.is-active{ border-color: var(--ink); background: var(--paper); color: var(--ink); }
   .pay-panel{ display: none; }
   .pay-panel.is-visible{ display: block; }
   .modal-confirm-btn{ width: 100%; padding: 13px; border: none; border-radius: var(--radius-md); background: var(--ink); color: #fff; font-weight: 700; cursor: pointer; }
+  .modal-confirm-btn:disabled{ opacity: 0.6; cursor: default; }
+  .pay-success{ display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--green-soft); color: var(--green); border-radius: var(--radius-sm); font-size: 0.82rem; font-weight: 700; margin-top: 12px; }
+  .detail-row{ display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 0.82rem; }
+  .detail-row:last-child{ border-bottom: none; }
+  .detail-row__label{ color: var(--slate-dim); font-weight: 600; }
+  .detail-row__value{ font-weight: 700; color: var(--ink); text-align: right; }
   .bottom-nav{ display: flex; background: var(--surface); border-top: 1px solid var(--line); padding: 7px 4px; position: sticky; bottom: 0; z-index: 5; }
-  .nav-btn{ flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; color: var(--slate-dim); font-size: 0.62rem; font-weight: 700; cursor: pointer; }
+  .nav-btn{ flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; color: var(--slate-dim); font-size: 0.62rem; font-weight: 700; cursor: pointer; padding: 6px 2px; }
   .nav-btn.is-active{ color: var(--ink); }
+  .nav-btn svg{ width: 18px; height: 18px; }
   .screen{ display: none; flex-direction: column; gap: 16px; }
   .screen.is-active{ display: flex; }
   .active-ticket{ display: none; background: linear-gradient(135deg, var(--ink), var(--ink-soft)); color: #fff; border-radius: var(--radius-lg); padding: 18px; text-align: center; }
   .active-ticket.is-visible{ display: block; }
+  .active-ticket__meta{ font-size: 0.72rem; color: #C9D2E3; margin-top: 8px; }
   .qr-mock{ width: 148px; height: 148px; margin: 0 auto 12px; background: #fff; border-radius: 10px; padding: 10px; }
   .qr-mock svg{ width: 100%; height: 100%; }
+
+  /* Empty / loading / error states */
+  .state-block{ display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 28px 14px; color: var(--slate-dim); gap: 6px; }
+  .state-block svg{ width: 30px; height: 30px; opacity: 0.6; margin-bottom: 4px; }
+  .state-block__title{ font-size: 0.86rem; font-weight: 700; color: var(--slate); }
+  .state-block__desc{ font-size: 0.76rem; }
+
+  /* Trips */
+  .trip-card{ border: 1.5px solid var(--line); border-radius: var(--radius-md); padding: 12px; margin-bottom: 10px; }
+  .trip-card:last-child{ margin-bottom: 0; }
+  .trip-card__top{ display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .trip-card__route{ font-weight: 700; font-size: 0.88rem; }
+  .status-pill{ font-size: 0.62rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap; }
+  .status-pill--active{ background: var(--amber-soft); color: var(--amber-ink); }
+  .status-pill--completed{ background: var(--green-soft); color: var(--green); }
+  .trip-card__meta{ font-size: 0.76rem; color: var(--slate-dim); display: flex; flex-wrap: wrap; gap: 4px 10px; }
+
+  /* Profile */
+  .profile-head{ display: flex; align-items: center; gap: 14px; margin-bottom: 6px; }
+  .avatar-circle{ width: 58px; height: 58px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; flex-shrink: 0; }
+  .profile-head__name{ font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; margin: 0 0 2px; }
+  .profile-head__sub{ font-size: 0.78rem; color: var(--slate-dim); }
+  .profile-field{ margin-bottom: 12px; }
+  .profile-field label{ display: block; font-size: 0.64rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--slate-dim); margin-bottom: 4px; }
+  .profile-field input{ width: 100%; border: 1.5px solid var(--line); border-radius: var(--radius-sm); padding: 9px 11px; font-size: 0.86rem; font-weight: 600; color: var(--ink); background: var(--paper); }
+  .profile-field input:disabled{ background: transparent; border-color: transparent; padding-left: 0; color: var(--ink); opacity: 1; -webkit-text-fill-color: var(--ink); }
+  .profile-field input:not(:disabled){ background: var(--surface); border-color: var(--ink); }
+  .profile-actions{ display: flex; gap: 10px; margin-top: 4px; }
+  .btn-secondary{ flex: 1; padding: 11px; border-radius: var(--radius-md); border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 700; font-size: 0.84rem; cursor: pointer; }
+  .btn-primary{ flex: 1; padding: 11px; border-radius: var(--radius-md); border: none; background: var(--ink); color: #fff; font-weight: 700; font-size: 0.84rem; cursor: pointer; }
+  .toast{ display: none; align-items: center; gap: 8px; margin-top: 12px; padding: 10px 12px; background: var(--green-soft); color: var(--green); border-radius: var(--radius-sm); font-size: 0.8rem; font-weight: 700; }
+  .toast.is-visible{ display: flex; }
+  .settings-row{ display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 2px; border-bottom: 1px solid var(--line); cursor: pointer; background: none; border-left: none; border-right: none; border-top: none; width: 100%; text-align: left; font-size: 0.86rem; font-weight: 600; color: var(--ink); }
+  .settings-row:last-child{ border-bottom: none; }
+  .settings-row__left{ display: flex; align-items: center; gap: 10px; }
+  .settings-row__icon{ width: 32px; height: 32px; border-radius: 9px; background: var(--paper); display: grid; place-items: center; flex-shrink: 0; color: var(--ink); }
+  .settings-row__icon svg{ width: 16px; height: 16px; }
+  .settings-row__chevron{ color: var(--slate-dim); flex-shrink: 0; }
+  .toggle{ position: relative; display: inline-block; width: 38px; height: 22px; flex-shrink: 0; }
+  .toggle input{ opacity: 0; width: 0; height: 0; }
+  .toggle__track{ position: absolute; inset: 0; background: var(--line); border-radius: 999px; transition: 0.2s; cursor: pointer; }
+  .toggle__track::before{ content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: 0.2s; }
+  .toggle input:checked + .toggle__track{ background: var(--green); }
+  .toggle input:checked + .toggle__track::before{ transform: translateX(16px); }
+  .payment-method-row{ display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .payment-method-row:last-child{ border-bottom: none; }
+  .payment-method-row__icon{ width: 36px; height: 26px; border-radius: 6px; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: 0.6rem; font-weight: 700; flex-shrink: 0; }
+  .payment-method-row__label{ font-weight: 700; font-size: 0.84rem; }
+  .payment-method-row__meta{ font-size: 0.72rem; color: var(--slate-dim); }
+  .default-tag{ margin-left: auto; font-size: 0.62rem; font-weight: 700; color: var(--green); background: var(--green-soft); padding: 2px 8px; border-radius: 999px; }
+  .saved-place-row{ display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 0.84rem; }
+  .saved-place-row:last-child{ border-bottom: none; }
+  .saved-place-row__icon{ width: 30px; height: 30px; border-radius: 8px; background: var(--paper); display: grid; place-items: center; flex-shrink: 0; }
+  .faq-item{ border-bottom: 1px solid var(--line); }
+  .faq-item:last-child{ border-bottom: none; }
+  .faq-q{ width: 100%; text-align: left; background: none; border: none; padding: 11px 0; font-weight: 700; font-size: 0.82rem; color: var(--ink); cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .faq-a{ display: none; padding: 0 0 12px; font-size: 0.78rem; color: var(--slate); }
+  .faq-item.is-open .faq-a{ display: block; }
+  .faq-item.is-open .faq-chevron{ transform: rotate(180deg); }
+  .sr-only{ position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 </style>
 </head>
 <body>
@@ -150,13 +259,25 @@
 <div class="app">
   <header class="appbar">
     <span class="appbar__brand">Transit<span>Track</span></span>
-    <span class="appbar__loc"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>Colombo, Sri Lanka</span>
+    <button class="appbar__loc" id="locBtn" type="button" aria-live="polite" title="Tap to retry location">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span id="currentLocation">Locating…</span>
+    </button>
     <span class="appbar__actions">
-      <button class="wallet-btn" id="walletBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></button>
+      <button class="icon-btn" id="notifBtn" type="button" aria-label="Notifications" aria-haspopup="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-dot" id="notifDot"></span>
+      </button>
+      <button class="wallet-btn" id="walletBtn" type="button" aria-label="Open wallet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg></button>
     </span>
+    <div class="notif-panel" id="notifPanel" role="region" aria-label="Notifications">
+      <div class="notif-panel__head">Notifications</div>
+      <div id="notifList"><div class="notif-empty">No notifications yet</div></div>
+    </div>
   </header>
 
   <div class="content">
+    <!-- ============ HOME ============ -->
     <section class="screen is-active" id="screenHome">
       <section class="card">
         <p class="card__eyebrow card__eyebrow--bus">Plan a journey</p>
@@ -164,16 +285,27 @@
         <p class="card__desc">We'll plan your ride to the halt, your bus, and your ride onward — end to end.</p>
         <div class="planner-fields">
           <div class="field-stack">
-            <div class="field"><label for="fromSelect">From</label><select id="fromSelect"><option value="Gampaha">Gampaha</option><option value="Negombo">Negombo</option><option value="Kadawatha">Kadawatha</option></select></div>
-            <div class="field"><label for="toSelect">To</label><select id="toSelect"><option value="Colombo Fort" selected>Colombo Fort</option><option value="Kollupitiya">Kollupitiya</option></select></div>
+            <div class="field"><label for="fromSelect">From</label><select id="fromSelect" aria-label="From location"><option value="Gampaha">Gampaha</option><option value="Negombo">Negombo</option><option value="Kadawatha">Kadawatha</option></select></div>
+            <div class="field"><label for="toSelect">To</label><select id="toSelect" aria-label="To location"><option value="Colombo Fort" selected>Colombo Fort</option><option value="Kollupitiya">Kollupitiya</option></select></div>
           </div>
+          <button class="swap-btn" id="swapBtn" type="button" aria-label="Swap From and To locations" title="Swap locations">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3v14M17 3l4 4M17 3l-4 4"/><path d="M7 21V7M7 21l-4-4M7 21l4-4"/></svg>
+          </button>
         </div>
+        <p class="field-error" id="plannerError">From and To can't be the same place.</p>
         <button class="plan-btn" id="planBtn">Plan journey</button>
-        <div class="journey-summary" id="journeySummary"><span id="journeySummaryText">Route 138 · Gampaha → Colombo Fort</span></div>
+        <div class="journey-summary" id="journeySummary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg><span id="journeySummaryText">Route 138 · Gampaha → Colombo Fort</span></div>
       </section>
 
       <div id="results">
         <section class="card">
+          <p class="card__eyebrow card__eyebrow--bus">Your journey</p>
+          <h2 class="card__title" style="margin-bottom:12px;">Journey status</h2>
+          <div class="journey-stepper" id="journeyStepper"></div>
+          <p class="status-banner" id="statusBanner">Journey planned. Choose a bus to continue.</p>
+        </section>
+
+        <section class="card" id="busListCard">
           <p class="card__eyebrow card__eyebrow--bus">Choose your bus</p>
           <h2 class="card__title">Buses on this route</h2>
           <div id="busList"></div>
@@ -182,17 +314,18 @@
         <section class="card">
           <div class="card__eyebrow-row"><p class="card__eyebrow card__eyebrow--ride">First mile</p><span class="partner-badge">Powered by PickMe</span></div>
           <h2 class="card__title">Request ride to Kadawatha Bus Stand</h2>
-          <div class="ride-toggle"><button type="button" class="is-active">Tuk-Tuk</button><button type="button">Bike</button></div>
+          <div class="ride-toggle"><button type="button" class="is-active" data-vehicle="Tuk-Tuk">Tuk-Tuk</button><button type="button" data-vehicle="Bike">Bike</button></div>
+          <p class="fare-note">Estimated fare: Rs. 220–280 · <span class="demo-badge">Demo</span></p>
           <button class="ride-btn" id="requestRideBtn">Request via PickMe</button>
           <div class="ride-status" id="rideStatus"><div class="ride-status__spinner"></div><div class="ride-status__text"><p class="ride-status__title">Finding a nearby driver…</p></div></div>
         </section>
 
         <section class="card">
-          <div class="timeline-meta"><span class="route-chip"><span class="route-chip__num">138</span><span>Gampaha → Colombo Fort</span></span></div>
-          <div class="tap-prompt" id="boardPrompt"><div><div class="tap-prompt__text">Tap or scan to board</div></div><button class="tap-prompt__btn" id="boardBtn">Tap / Scan</button></div>
-          <p class="boarding-note" id="boardingNote"><span>Boarded</span></p>
+          <div class="timeline-meta"><span class="route-chip"><span class="route-chip__num">138</span><span>Gampaha → Colombo Fort</span></span><span class="demo-badge" title="This timeline is simulated for demo purposes">Simulated tracking</span></div>
+          <div class="tap-prompt" id="boardPrompt"><div><div class="tap-prompt__text" id="boardPromptText">Waiting for bus to arrive…</div></div><button class="tap-prompt__btn" id="boardBtn" disabled>Tap / Scan</button></div>
+          <p class="boarding-note" id="boardingNote"><span>Boarded — enjoy your ride</span></p>
           <div class="tap-prompt" id="exitPrompt" style="display:none;"><div><div class="tap-prompt__text">Tap to exit &amp; complete trip</div></div><button class="tap-prompt__btn" id="exitBtn">Tap / Scan</button></div>
-          <p class="payment-note" id="paymentNote"><span>Payment complete</span></p>
+          <p class="payment-note" id="paymentNote"><span>Demo payment successful — Rs. 180 paid</span></p>
           <div class="timeline" id="timeline"><div class="timeline__progress" id="timelineProgress"></div></div>
         </section>
 
@@ -203,7 +336,7 @@
           <div id="lastMileActive" class="lastmile-active">
             <button class="ride-btn" id="bookLastMileBtn">Request via PickMe</button>
             <div id="lastMileBookedWrap" style="display:none;">
-              <div class="lastmile-booked"><span class="lastmile-booked__avatar">SF</span><div><p class="lastmile-booked__title">Booked Tuk-Tuk WP CAB-7734</p></div></div>
+              <div class="lastmile-booked"><span class="lastmile-booked__avatar">SF</span><div><p class="lastmile-booked__title">Booked Tuk-Tuk WP CAB-7734</p><p class="card__desc" style="margin:0;">Demo driver · not a real ride</p></div></div>
               <div class="countdown"><span class="countdown__value" id="countdownValue">06:00</span></div>
             </div>
           </div>
@@ -211,6 +344,19 @@
       </div>
     </section>
 
+    <!-- ============ TRIPS ============ -->
+    <section class="screen" id="screenTrips">
+      <section class="card">
+        <p class="card__eyebrow card__eyebrow--bus">Journey history</p>
+        <h2 class="card__title">Your trips</h2>
+        <p class="card__desc">Active and past bus journeys linked to your account.</p>
+        <div id="tripsList">
+          <div class="state-block"><span class="state-block__title">Loading…</span></div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ============ TICKETS ============ -->
     <section class="screen" id="screenTickets">
       <section class="card">
         <p class="card__eyebrow card__eyebrow--bus">Digital ticketing</p>
@@ -222,23 +368,163 @@
           <div class="active-ticket__route" id="activeTicketRoute">Route 138 · Single Ride</div>
           <div class="qr-mock"><svg viewBox="0 0 29 29" fill="#14213D" id="ticketQr"></svg></div>
           <div class="active-ticket__code" id="activeTicketCode">TT-138-4821</div>
+          <div class="active-ticket__meta" id="activeTicketMeta"></div>
         </div>
+      </section>
+      <section class="card">
+        <p class="card__eyebrow card__eyebrow--bus">Past tickets</p>
+        <h2 class="card__title">Ticket history</h2>
+        <div id="ticketHistory">
+          <div class="state-block"><span class="state-block__title">Loading…</span></div>
+        </div>
+      </section>
+    </section>
+
+    <!-- ============ PROFILE ============ -->
+    <section class="screen" id="screenProfile">
+      <section class="card">
+        <div class="profile-head">
+          <span class="avatar-circle" id="profileAvatar">SF</span>
+          <div>
+            <p class="profile-head__name" id="profileDisplayName">Sanduni Fernando</p>
+            <p class="profile-head__sub">Passenger ID: <span id="profilePassengerId">—</span></p>
+          </div>
+        </div>
+        <form id="profileForm">
+          <div class="profile-field"><label for="profileName">Full name</label><input id="profileName" name="name" type="text" disabled value="Sanduni Fernando" autocomplete="name"></div>
+          <div class="profile-field"><label for="profilePhone">Phone number</label><input id="profilePhone" name="phone" type="tel" disabled value="+94 77 123 4567" autocomplete="tel"></div>
+          <div class="profile-field"><label for="profileEmail">Email address</label><input id="profileEmail" name="email" type="email" disabled value="sanduni.f@example.com" autocomplete="email"></div>
+          <div class="profile-field"><label for="profileHome">Home / saved location</label><input id="profileHome" name="home" type="text" disabled value="Kadawatha, Sri Lanka" autocomplete="address-level2"></div>
+          <p class="field-error" id="profileError">Please fill in your name and a valid email.</p>
+          <div class="profile-actions">
+            <button type="button" class="btn-secondary" id="editProfileBtn">Edit Profile</button>
+            <button type="submit" class="btn-primary" id="saveProfileBtn" style="display:none;">Save Changes</button>
+          </div>
+          <p class="toast" id="profileToast">Profile updated</p>
+        </form>
+      </section>
+
+      <section class="card">
+        <p class="card__eyebrow card__eyebrow--bus">Payment</p>
+        <h2 class="card__title" style="margin-bottom:8px;">Payment methods</h2>
+        <div id="paymentMethodsList">
+          <div class="payment-method-row"><span class="payment-method-row__icon">VISA</span><div><div class="payment-method-row__label">Visa •••• 4242</div><div class="payment-method-row__meta">Expires 09/28 · Demo card</div></div><span class="default-tag">Default</span></div>
+          <div class="payment-method-row"><span class="payment-method-row__icon" style="background:var(--ride);">QR</span><div><div class="payment-method-row__label">TransitTrack QR Pay</div><div class="payment-method-row__meta">Linked wallet · Demo</div></div></div>
+        </div>
+        <button class="link-btn" style="margin-top:10px;" id="addPaymentBtn" type="button">+ Add payment method</button>
+      </section>
+
+      <section class="card">
+        <p class="card__eyebrow card__eyebrow--bus">Places</p>
+        <h2 class="card__title" style="margin-bottom:8px;">Saved places</h2>
+        <div id="savedPlacesList">
+          <div class="saved-place-row"><span class="saved-place-row__icon">🏠</span><div><strong>Home</strong> — <span id="savedHomeText">Kadawatha, Sri Lanka</span></div></div>
+          <div class="saved-place-row"><span class="saved-place-row__icon">💼</span><div><strong>Work</strong> — Colombo Fort, Sri Lanka</div></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <p class="card__eyebrow card__eyebrow--bus">Preferences</p>
+        <h2 class="card__title" style="margin-bottom:4px;">Notification settings</h2>
+        <div class="settings-row" style="cursor:default;">
+          <span class="settings-row__left"><span class="settings-row__icon">🚌</span>Bus arrival alerts</span>
+          <label class="toggle"><input type="checkbox" id="notifBusToggle" checked><span class="toggle__track"></span></label>
+        </div>
+        <div class="settings-row" style="cursor:default;">
+          <span class="settings-row__left"><span class="settings-row__icon">🎫</span>Ticket &amp; payment alerts</span>
+          <label class="toggle"><input type="checkbox" id="notifTicketToggle" checked><span class="toggle__track"></span></label>
+        </div>
+        <div class="settings-row" style="cursor:default;">
+          <span class="settings-row__left"><span class="settings-row__icon">📣</span>Offers &amp; promotions</span>
+          <label class="toggle"><input type="checkbox" id="notifPromoToggle"><span class="toggle__track"></span></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <p class="card__eyebrow card__eyebrow--bus">Support</p>
+        <h2 class="card__title" style="margin-bottom:4px;">Help &amp; support</h2>
+        <div id="faqList">
+          <div class="faq-item">
+            <button class="faq-q" type="button"><span>How do I board using TransitTrack?</span><span class="faq-chevron">⌄</span></button>
+            <div class="faq-a">Select your bus after planning a journey, wait until it shows "Ready to board", then tap the Tap/Scan button as you get on.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" type="button"><span>How is my fare calculated?</span><span class="faq-chevron">⌄</span></button>
+            <div class="faq-a">Fares are set per route by the operator and shown before you board or purchase a ticket.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" type="button"><span>Is live bus tracking real?</span><span class="faq-chevron">⌄</span></button>
+            <div class="faq-a">This build uses simulated/demo tracking data where a live feed isn't connected yet. Simulated sections are clearly labeled "Demo".</div>
+          </div>
+        </div>
+        <button class="settings-row" type="button" id="contactSupportBtn">
+          <span class="settings-row__left"><span class="settings-row__icon">💬</span>Contact Support</span>
+          <span class="settings-row__chevron">›</span>
+        </button>
+        <button class="settings-row" type="button" id="reportProblemBtn">
+          <span class="settings-row__left"><span class="settings-row__icon">⚠️</span>Report a Problem</span>
+          <span class="settings-row__chevron">›</span>
+        </button>
+        <p class="toast" id="supportToast">Thanks — our demo support team has logged this.</p>
+      </section>
+
+      <section class="card">
+        <button class="settings-row" type="button" id="logoutBtn" style="color:var(--coral);">
+          <span class="settings-row__left"><span class="settings-row__icon" style="color:var(--coral);">⎋</span>Log out</span>
+        </button>
       </section>
     </section>
   </div>
 
   <nav class="bottom-nav">
-    <button class="nav-btn is-active" data-screen="screenHome">Home</button>
-    <button class="nav-btn" data-screen="screenTickets">Tickets</button>
+    <button class="nav-btn is-active" data-screen="screenHome" aria-label="Home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+      Home
+    </button>
+    <button class="nav-btn" data-screen="screenTrips" aria-label="Trips">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M8 6V4h8v2"/></svg>
+      Trips
+    </button>
+    <button class="nav-btn" data-screen="screenTickets" aria-label="Tickets">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10a2 2 0 0 0 0 4v3a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3a2 2 0 0 1 0-4V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2Z"/></svg>
+      Tickets
+    </button>
+    <button class="nav-btn" data-screen="screenProfile" aria-label="Profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+      Profile
+    </button>
   </nav>
 </div>
 
+<!-- Wallet / Payment modal -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-sheet">
-    <div class="modal-sheet__head"><div><p class="modal-sheet__title" id="modalTitle">Your wallet</p></div><button class="modal-close" id="modalCloseBtn">✕</button></div>
-    <div class="pay-methods"><button class="pay-method is-active" id="payMethodCard">Card</button><button class="pay-method" id="payMethodQr">Scan QR</button></div>
-    <div class="pay-panel is-visible" id="payPanelCard"><button class="modal-confirm-btn" id="cardConfirmBtn">Tap to pay</button></div>
-    <div class="pay-panel" id="payPanelQr"><button class="modal-confirm-btn" id="qrConfirmBtn">Simulate scan</button></div>
+    <div class="modal-sheet__head"><div><p class="modal-sheet__title" id="modalTitle">Your wallet</p><p class="card__desc" style="margin:2px 0 0;">Demo payments only — no real money is charged.</p></div><button class="modal-close" id="modalCloseBtn" aria-label="Close wallet">✕</button></div>
+    <div class="pay-methods"><button class="pay-method is-active" id="payMethodCard" type="button">Card</button><button class="pay-method" id="payMethodQr" type="button">Scan QR</button></div>
+    <div class="pay-panel is-visible" id="payPanelCard"><button class="modal-confirm-btn" id="cardConfirmBtn" type="button">Tap to pay</button></div>
+    <div class="pay-panel" id="payPanelQr"><button class="modal-confirm-btn" id="qrConfirmBtn" type="button">Simulate scan</button></div>
+    <p class="pay-success" id="walletPaySuccess">Demo payment successful</p>
+  </div>
+</div>
+
+<!-- Bus details modal -->
+<div class="modal-overlay" id="busModalOverlay">
+  <div class="modal-sheet">
+    <div class="modal-sheet__head"><div><p class="modal-sheet__title">Bus details</p></div><button class="modal-close" id="busModalCloseBtn" aria-label="Close bus details">✕</button></div>
+    <div id="busModalBody"></div>
+  </div>
+</div>
+
+<!-- Ticket purchase confirmation modal -->
+<div class="modal-overlay" id="ticketConfirmOverlay">
+  <div class="modal-sheet">
+    <div class="modal-sheet__head"><div><p class="modal-sheet__title">Confirm purchase</p></div><button class="modal-close" id="ticketConfirmCloseBtn" aria-label="Close ticket confirmation">✕</button></div>
+    <div id="ticketConfirmBody"></div>
+    <div class="pay-methods" style="margin-top:14px;">
+      <button class="pay-method is-active" id="ticketPayCard" type="button">Card</button>
+      <button class="pay-method" id="ticketPayQr" type="button">Scan QR</button>
+    </div>
+    <button class="modal-confirm-btn" id="ticketConfirmBtn" type="button">Confirm Purchase</button>
   </div>
 </div>
 
@@ -246,7 +532,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import {
     getFirestore, collection, query, where, getDocs, addDoc,
-    doc, setDoc, updateDoc, onSnapshot, serverTimestamp
+    doc, getDoc, setDoc, updateDoc, onSnapshot, serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   // --- Shared Firebase project (same config as Admin Portal & Owner App) ---
@@ -269,6 +555,7 @@
     routes: "routes",
     tickets: "tickets",
     rides: "rides",
+    passengers: "passengers", // additional collection used only for profile data; does not replace the 4 shared ones above
   };
 
   let db = null;
@@ -278,54 +565,278 @@
   } catch(e) { console.warn("Firebase offline or placeholder config in use.", e); }
 
   const currentPassengerId = "uid_passenger1";
+  document.getElementById('profilePassengerId').textContent = currentPassengerId;
 
-  let busesData = [
-    { id: 'b1', label: 'Bus WP ND-4567', type: 'Normal', eta: 4, crowd: 'empty' },
-    { id: 'b2', label: 'Bus WP GH-3321', type: 'Luxury', eta: 9, crowd: 'moderate' },
-  ];
-
-  async function fetchBusesForRoute() {
-    if(db) {
-      try {
-        const q = query(collection(db, COL.buses), where("status", "==", "verified"));
-        const snapshot = await getDocs(q);
-        if(!snapshot.empty) {
-          busesData = [];
-          snapshot.forEach(docSnap => {
-            const d = docSnap.data();
-            busesData.push({
-              id: docSnap.id,
-              label: d.regNumber || d.busReg,
-              type: d.busType || d.type || "Normal",
-              eta: Math.floor(Math.random() * 12) + 3,
-              crowd: 'empty'
-            });
-          });
-        }
-      } catch(e) { console.error("Firestore passenger fetch error: ", e); }
-    }
-    renderBusList();
+  // ============================================================
+  // Notifications
+  // ============================================================
+  let notifications = [];
+  function addNotification(text) {
+    notifications.unshift({ text, time: new Date() });
+    notifications = notifications.slice(0, 20);
+    renderNotifications();
+    document.getElementById('notifDot').classList.add('is-visible');
   }
-
-  function renderBusList() {
-    const el = document.getElementById('busList');
-    el.innerHTML = busesData.map((b, i) => `
-      <div class="bus-row ${i === 0 ? 'is-selected' : ''}">
-        <span class="bus-row__radio"><span class="bus-row__radio-dot"></span></span>
-        <div class="bus-row__body"><div class="bus-row__top"><span class="bus-row__label">${b.label}</span><span class="type-badge type-badge--${b.type}">${b.type}</span></div></div>
-        <span class="bus-row__eta">${b.eta} min</span>
+  function renderNotifications() {
+    const el = document.getElementById('notifList');
+    if (!notifications.length) {
+      el.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+      return;
+    }
+    el.innerHTML = notifications.map(n => `
+      <div class="notif-item">
+        <div>${n.text}</div>
+        <div class="notif-item__time">${n.time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
       </div>
     `).join('');
   }
+  document.getElementById('notifBtn').addEventListener('click', () => {
+    const panel = document.getElementById('notifPanel');
+    panel.classList.toggle('is-open');
+    if (panel.classList.contains('is-open')) document.getElementById('notifDot').classList.remove('is-visible');
+  });
+  document.addEventListener('click', (e) => {
+    const panel = document.getElementById('notifPanel');
+    const btn = document.getElementById('notifBtn');
+    if (panel.classList.contains('is-open') && !panel.contains(e.target) && !btn.contains(e.target)) {
+      panel.classList.remove('is-open');
+    }
+  });
 
-  // --- Ticket Options (Digital Ticketing tab) ---
+  // ============================================================
+  // Location (top bar) — real geolocation, graceful fallback
+  // ============================================================
+  function initLocation() {
+    const label = document.getElementById('currentLocation');
+    if (!('geolocation' in navigator)) {
+      label.textContent = 'Location unavailable';
+      return;
+    }
+    label.textContent = 'Locating…';
+    navigator.geolocation.getCurrentPosition(
+      () => { label.textContent = 'Current location'; },
+      () => { label.textContent = 'Location unavailable'; },
+      { timeout: 8000 }
+    );
+  }
+  document.getElementById('locBtn').addEventListener('click', initLocation);
+  initLocation();
+
+  // ============================================================
+  // Journey status stepper (10 states)
+  // ============================================================
+  const journeySteps = [
+    'Planned', 'Bus selected', 'Bus arriving', 'Ready to board', 'Boarded',
+    'In progress', 'Arrived', 'Tapped out', 'Payment done', 'Last mile'
+  ];
+  const journeyStatusText = [
+    'Journey planned. Choose a bus to continue.',
+    'Bus selected. Waiting for it to arrive.',
+    'Your bus is arriving — get ready.',
+    'Bus has arrived. Tap / scan to board.',
+    'Boarded — sit back and relax.',
+    'Journey in progress.',
+    'You have reached your destination.',
+    'Tapped out. Finalizing your trip…',
+    'Payment completed. Last-mile ride unlocked.',
+    'Last-mile ride ready to request.'
+  ];
+  let journeyStateIndex = -1;
+  function renderStepper() {
+    const el = document.getElementById('journeyStepper');
+    el.innerHTML = journeySteps.map((label, i) => {
+      const state = i < journeyStateIndex ? 'is-done' : i === journeyStateIndex ? 'is-current' : '';
+      return `<div class="jstep ${state}"><span class="jstep__dot">${i < journeyStateIndex ? '✓' : i + 1}</span><span class="jstep__label">${label}</span></div>`;
+    }).join('');
+    if (journeyStateIndex >= 0) {
+      document.getElementById('statusBanner').textContent = journeyStatusText[journeyStateIndex];
+    }
+  }
+  function setJourneyState(i) {
+    journeyStateIndex = i;
+    renderStepper();
+  }
+
+  // ============================================================
+  // Journey planner: validation + swap
+  // ============================================================
+  const fromSelect = document.getElementById('fromSelect');
+  const toSelect = document.getElementById('toSelect');
+  const plannerError = document.getElementById('plannerError');
+
+  document.getElementById('swapBtn').addEventListener('click', () => {
+    // Only swap between options that exist in both selects; otherwise just
+    // flip the text values so the intent (swap From/To) is always honoured.
+    const fromVal = fromSelect.value;
+    const toVal = toSelect.value;
+    const setOrAdd = (select, value) => {
+      if (![...select.options].some(o => o.value === value)) {
+        const opt = document.createElement('option');
+        opt.value = value; opt.textContent = value;
+        select.appendChild(opt);
+      }
+      select.value = value;
+    };
+    setOrAdd(fromSelect, toVal);
+    setOrAdd(toSelect, fromVal);
+    plannerError.classList.remove('is-visible');
+  });
+
+  // ============================================================
+  // Bus list
+  // ============================================================
+  let busesData = [
+    { id: 'b1', label: 'Bus WP ND-4567', regNumber: 'WP ND-4567', type: 'Normal', etaMin: 4, etaDemo: true, fare: 180, crowd: 'moderate', crowdDemo: true, route: 'Route 138', status: 'On route' },
+    { id: 'b2', label: 'Bus WP GH-3321', regNumber: 'WP GH-3321', type: 'Luxury', etaMin: 9, etaDemo: true, fare: 260, crowd: 'low', crowdDemo: true, route: 'Route 138', status: 'On route' },
+  ];
+  let selectedBusId = busesData[0] ? busesData[0].id : null;
+  let busListLoading = false;
+  let busListError = false;
+
+  async function fetchBusesForRoute() {
+    busListLoading = true;
+    busListError = false;
+    renderBusList();
+    if (db) {
+      try {
+        const q = query(collection(db, COL.buses), where("status", "==", "verified"));
+        const snapshot = await getDocs(q);
+        if (!snapshot.empty) {
+          busesData = [];
+          snapshot.forEach((docSnap, i) => {
+            const d = docSnap.data();
+            const hasRealEta = typeof d.etaMinutes === 'number';
+            const hasRealCrowd = typeof d.crowdLevel === 'string';
+            busesData.push({
+              id: docSnap.id,
+              label: d.regNumber || d.busReg || `Bus ${docSnap.id}`,
+              regNumber: d.regNumber || d.busReg || '—',
+              type: d.busType || d.type || 'Normal',
+              etaMin: hasRealEta ? d.etaMinutes : (5 + i * 3),
+              etaDemo: !hasRealEta,
+              fare: d.fare || 180,
+              crowd: hasRealCrowd ? d.crowdLevel : (i % 3 === 0 ? 'low' : i % 3 === 1 ? 'moderate' : 'high'),
+              crowdDemo: !hasRealCrowd,
+              route: d.routeName || 'Route 138',
+              status: d.currentStatus || 'On route',
+            });
+          });
+        }
+      } catch(e) { console.error("Firestore bus fetch error: ", e); busListError = true; }
+    }
+    busListLoading = false;
+    selectedBusId = busesData[0] ? busesData[0].id : null;
+    renderBusList();
+  }
+
+  function crowdLabel(c) { return c === 'low' ? 'Low' : c === 'high' ? 'High' : 'Moderate'; }
+
+  function renderBusList() {
+    const el = document.getElementById('busList');
+    if (busListLoading) {
+      el.innerHTML = '<div class="state-block"><span class="state-block__title">Loading…</span></div>';
+      return;
+    }
+    if (busListError) {
+      el.innerHTML = '<div class="state-block"><span class="state-block__title">Unable to load data. Please try again.</span></div>';
+      return;
+    }
+    if (!busesData.length) {
+      el.innerHTML = '<div class="state-block"><span class="state-block__title">No buses available for this route.</span></div>';
+      return;
+    }
+    const locked = journeyStateIndex >= 4; // bus already boarded
+    el.innerHTML = busesData.map(b => `
+      <div class="bus-row ${b.id === selectedBusId ? 'is-selected' : ''} ${locked ? 'is-disabled' : ''}" data-bus-id="${b.id}" role="button" tabindex="0" aria-pressed="${b.id === selectedBusId}">
+        <span class="bus-row__radio"><span class="bus-row__radio-dot"></span></span>
+        <div class="bus-row__body">
+          <div class="bus-row__top">
+            <span class="bus-row__label">${b.label}</span>
+            <span class="type-badge type-badge--${b.type}">${b.type}</span>
+            <span class="crowd-badge crowd-badge--${b.crowd}">${crowdLabel(b.crowd)} crowd</span>
+          </div>
+          <div class="bus-row__meta">${b.route} · ${b.status}${b.crowdDemo ? ' · <span title="Simulated crowd level">demo crowd data</span>' : ''}</div>
+          <button type="button" class="bus-row__details-btn" data-bus-details="${b.id}">View details</button>
+        </div>
+        <div class="bus-row__right">
+          <span class="bus-row__eta">${b.etaMin} min${b.etaDemo ? '*' : ''}</span>
+          <span class="bus-row__fare">Rs. ${b.fare}</span>
+        </div>
+      </div>
+    `).join('') + (busesData.some(b => b.etaDemo) ? '<p class="card__desc" style="margin:8px 0 0;">*Simulated ETA — live tracking not connected for this bus.</p>' : '');
+
+    el.querySelectorAll('.bus-row').forEach(row => {
+      row.addEventListener('click', (e) => {
+        if (e.target.closest('[data-bus-details]')) return;
+        if (locked) return;
+        selectBus(row.dataset.busId);
+      });
+      row.addEventListener('keydown', (e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && !locked) { e.preventDefault(); selectBus(row.dataset.busId); }
+      });
+    });
+    el.querySelectorAll('[data-bus-details]').forEach(btn => {
+      btn.addEventListener('click', (e) => { e.stopPropagation(); openBusDetails(btn.dataset.busDetails); });
+    });
+  }
+
+  let arrivalTimers = [];
+  function clearArrivalTimers() { arrivalTimers.forEach(t => clearTimeout(t)); arrivalTimers = []; }
+
+  function selectBus(busId) {
+    if (journeyStateIndex >= 4) return; // can't change bus after boarding
+    selectedBusId = busId;
+    renderBusList();
+    clearArrivalTimers();
+    setJourneyState(1); // bus selected
+    document.getElementById('boardPromptText').textContent = 'Waiting for bus to arrive…';
+    document.getElementById('boardBtn').disabled = true;
+    arrivalTimers.push(setTimeout(() => {
+      setJourneyState(2); // arriving
+      document.getElementById('boardPromptText').textContent = 'Your bus is arriving…';
+    }, 1400));
+    arrivalTimers.push(setTimeout(() => {
+      setJourneyState(3); // ready to board
+      document.getElementById('boardPromptText').textContent = 'Bus has arrived — tap or scan to board';
+      document.getElementById('boardBtn').disabled = false;
+      addNotification('Your bus has arrived at the halt.');
+    }, 2800));
+  }
+
+  function openBusDetails(busId) {
+    const b = busesData.find(x => x.id === busId);
+    if (!b) return;
+    const body = document.getElementById('busModalBody');
+    body.innerHTML = `
+      <div class="detail-row"><span class="detail-row__label">Registration</span><span class="detail-row__value">${b.regNumber}</span></div>
+      <div class="detail-row"><span class="detail-row__label">Bus type</span><span class="detail-row__value">${b.type}</span></div>
+      <div class="detail-row"><span class="detail-row__label">Current location</span><span class="detail-row__value">${b.etaDemo ? 'Demo / simulated' : 'Approaching next halt'}</span></div>
+      <div class="detail-row"><span class="detail-row__label">ETA</span><span class="detail-row__value">${b.etaMin} min${b.etaDemo ? ' (demo)' : ''}</span></div>
+      <div class="detail-row"><span class="detail-row__label">Crowd level</span><span class="detail-row__value">${crowdLabel(b.crowd)}${b.crowdDemo ? ' (demo)' : ''}</span></div>
+      <div class="detail-row"><span class="detail-row__label">Route</span><span class="detail-row__value">${b.route}</span></div>
+      <div class="detail-row"><span class="detail-row__label">Fare</span><span class="detail-row__value">Rs. ${b.fare}</span></div>
+      <div class="detail-row"><span class="detail-row__label">Status</span><span class="detail-row__value">${b.status}</span></div>
+    `;
+    document.getElementById('busModalOverlay').classList.add('is-open');
+  }
+  document.getElementById('busModalCloseBtn').addEventListener('click', () => document.getElementById('busModalOverlay').classList.remove('is-open'));
+
+  // ============================================================
+  // Ticket options (Digital Ticketing tab)
+  // ============================================================
   let ticketOptionsData = [
     { id: 't1', routeNum: 'Route 138', routeName: 'Gampaha → Colombo Fort', type: 'Single Ride', fare: 180 },
     { id: 't2', routeNum: 'Route 138', routeName: 'Gampaha → Colombo Fort', type: 'Return Ticket', fare: 340 },
     { id: 't3', routeNum: 'Route 100', routeName: 'Negombo → Colombo', type: 'Single Ride', fare: 150 },
   ];
+  let ticketOptionsLoading = false;
+  let ticketOptionsError = false;
+  let purchaseInFlight = false;
 
   async function fetchTicketOptions() {
+    ticketOptionsLoading = true;
+    ticketOptionsError = false;
+    renderTicketOptions();
     if (db) {
       try {
         const snapshot = await getDocs(collection(db, COL.routes));
@@ -337,15 +848,20 @@
             ticketOptionsData.push({ id: docSnap.id + '_return', routeNum: r.num, routeName: r.name, type: 'Return Ticket', fare: Math.round(r.fare * 1.9) });
           });
         }
-      } catch(e) { console.error("Firestore ticket options fetch error: ", e); }
+      } catch(e) { console.error("Firestore ticket options fetch error: ", e); ticketOptionsError = true; }
     }
+    ticketOptionsLoading = false;
     renderTicketOptions();
   }
 
   function renderTicketOptions() {
     const el = document.getElementById('ticketOptions');
+    if (ticketOptionsLoading) { el.innerHTML = '<div class="state-block"><span class="state-block__title">Loading…</span></div>'; return; }
+    if (ticketOptionsError) { el.innerHTML = '<div class="state-block"><span class="state-block__title">Unable to load data. Please try again.</span></div>'; return; }
+    if (!ticketOptionsData.length) { el.innerHTML = '<div class="state-block"><span class="state-block__title">No tickets yet.</span></div>'; return; }
+
     el.innerHTML = ticketOptionsData.map(t => `
-      <div class="bus-row" data-ticket-id="${t.id}">
+      <div class="bus-row" data-ticket-id="${t.id}" role="button" tabindex="0">
         <span class="bus-row__radio"><span class="bus-row__radio-dot"></span></span>
         <div class="bus-row__body">
           <div class="bus-row__top"><span class="bus-row__label">${t.routeNum} · ${t.type}</span></div>
@@ -356,18 +872,65 @@
     `).join('');
 
     el.querySelectorAll('[data-ticket-id]').forEach(row => {
-      row.addEventListener('click', () => buyTicket(row.dataset.ticketId));
+      row.addEventListener('click', () => openTicketConfirm(row.dataset.ticketId));
+      row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openTicketConfirm(row.dataset.ticketId); } });
     });
   }
 
-  async function buyTicket(ticketId) {
+  let pendingTicketId = null;
+  let ticketConfirmMethod = 'card';
+
+  function openTicketConfirm(ticketId) {
+    const ticket = ticketOptionsData.find(t => t.id === ticketId);
+    if (!ticket) return;
+    pendingTicketId = ticketId;
+    ticketConfirmMethod = 'card';
+    document.getElementById('ticketPayCard').classList.add('is-active');
+    document.getElementById('ticketPayQr').classList.remove('is-active');
+    document.getElementById('ticketConfirmBody').innerHTML = `
+      <div class="detail-row"><span class="detail-row__label">Route</span><span class="detail-row__value">${ticket.routeNum}</span></div>
+      <div class="detail-row"><span class="detail-row__label">Journey</span><span class="detail-row__value">${ticket.routeName}</span></div>
+      <div class="detail-row"><span class="detail-row__label">Ticket type</span><span class="detail-row__value">${ticket.type}</span></div>
+      <div class="detail-row"><span class="detail-row__label">Fare</span><span class="detail-row__value">Rs. ${ticket.fare}</span></div>
+    `;
+    document.getElementById('ticketConfirmBtn').disabled = false;
+    document.getElementById('ticketConfirmBtn').textContent = 'Confirm Purchase';
+    document.getElementById('ticketConfirmOverlay').classList.add('is-open');
+  }
+  document.getElementById('ticketConfirmCloseBtn').addEventListener('click', () => document.getElementById('ticketConfirmOverlay').classList.remove('is-open'));
+  document.getElementById('ticketPayCard').addEventListener('click', () => {
+    ticketConfirmMethod = 'card';
+    document.getElementById('ticketPayCard').classList.add('is-active');
+    document.getElementById('ticketPayQr').classList.remove('is-active');
+  });
+  document.getElementById('ticketPayQr').addEventListener('click', () => {
+    ticketConfirmMethod = 'qr';
+    document.getElementById('ticketPayQr').classList.add('is-active');
+    document.getElementById('ticketPayCard').classList.remove('is-active');
+  });
+  document.getElementById('ticketConfirmBtn').addEventListener('click', async () => {
+    if (!pendingTicketId || purchaseInFlight) return;
+    purchaseInFlight = true;
+    const btn = document.getElementById('ticketConfirmBtn');
+    btn.disabled = true;
+    btn.textContent = 'Processing…';
+    await buyTicket(pendingTicketId, ticketConfirmMethod);
+    purchaseInFlight = false;
+    document.getElementById('ticketConfirmOverlay').classList.remove('is-open');
+    pendingTicketId = null;
+  });
+
+  async function buyTicket(ticketId, method) {
     const ticket = ticketOptionsData.find(t => t.id === ticketId);
     if (!ticket) return;
 
-    const code = `TT-${ticket.routeNum.replace('Route ', '')}-${Math.floor(1000 + Math.random() * 8999)}`;
+    const code = `TT-${(ticket.routeNum || 'RT').replace('Route ', '')}-${Math.floor(1000 + Math.random() * 8999)}`;
+    const now = new Date();
     document.getElementById('activeTicketRoute').textContent = `${ticket.routeNum} · ${ticket.type}`;
     document.getElementById('activeTicketCode').textContent = code;
+    document.getElementById('activeTicketMeta').textContent = `Purchased ${now.toLocaleString()} · Valid for this journey · ${method === 'card' ? 'Paid by card' : 'Paid via QR'} (demo)`;
     document.getElementById('activeTicket').classList.add('is-visible');
+    addNotification(`Ticket purchased: ${ticket.routeNum} · ${ticket.type}`);
 
     if (db) {
       try {
@@ -378,27 +941,103 @@
           type: ticket.type,
           farePaid: ticket.fare,
           ticketCode: code,
+          paymentMethod: method,
+          status: 'valid',
           timestamp: new Date().toISOString()
         });
       } catch(e) { console.error("Firestore ticket purchase error: ", e); }
     }
+    renderTicketHistory();
+    renderTripHistory();
   }
 
+  // --- Ticket & trip history (both read from the shared "tickets" collection) ---
+  async function renderTicketHistory() {
+    const el = document.getElementById('ticketHistory');
+    el.innerHTML = '<div class="state-block"><span class="state-block__title">Loading…</span></div>';
+    if (!db) { el.innerHTML = '<div class="state-block"><span class="state-block__title">No tickets yet.</span></div>'; return; }
+    try {
+      const q = query(collection(db, COL.tickets), where('passengerId', '==', currentPassengerId));
+      const snapshot = await getDocs(q);
+      const records = [];
+      snapshot.forEach(d => records.push(d.data()));
+      const purchased = records.filter(r => r.ticketCode);
+      if (!purchased.length) { el.innerHTML = '<div class="state-block"><span class="state-block__title">No tickets yet.</span></div>'; return; }
+      el.innerHTML = purchased.map(t => `
+        <div class="trip-card">
+          <div class="trip-card__top"><span class="trip-card__route">${t.routeNum || 'Route'} · ${t.type || 'Ticket'}</span><span class="status-pill status-pill--completed">${t.status || 'Valid'}</span></div>
+          <div class="trip-card__meta"><span>${t.routeName || ''}</span><span>Rs. ${t.farePaid ?? '—'}</span><span>${t.timestamp ? new Date(t.timestamp).toLocaleDateString() : ''}</span></div>
+        </div>
+      `).join('');
+    } catch(e) {
+      console.error("Ticket history fetch error: ", e);
+      el.innerHTML = '<div class="state-block"><span class="state-block__title">Unable to load data. Please try again.</span></div>';
+    }
+  }
+
+  async function renderTripHistory() {
+    const el = document.getElementById('tripsList');
+    el.innerHTML = '<div class="state-block"><span class="state-block__title">Loading…</span></div>';
+    if (!db) { el.innerHTML = '<div class="state-block"><span class="state-block__title">No trips yet.</span></div>'; return; }
+    try {
+      const q = query(collection(db, COL.tickets), where('passengerId', '==', currentPassengerId));
+      const snapshot = await getDocs(q);
+      const records = [];
+      snapshot.forEach(d => records.push(d.data()));
+      const trips = records.filter(r => r.busId || r.routeId);
+      let html = '';
+      if (journeyStateIndex >= 0 && journeyStateIndex < 8) {
+        html += `
+          <div class="trip-card">
+            <div class="trip-card__top"><span class="trip-card__route">Route 138 · Gampaha → Colombo Fort</span><span class="status-pill status-pill--active">Active</span></div>
+            <div class="trip-card__meta"><span>${busesData.find(b => b.id === selectedBusId)?.label || 'Bus not yet selected'}</span><span>Status: ${journeyStatusText[journeyStateIndex]}</span></div>
+          </div>`;
+      }
+      if (trips.length) {
+        html += trips.map(t => `
+          <div class="trip-card">
+            <div class="trip-card__top"><span class="trip-card__route">${t.routeId || 'Route 138'}</span><span class="status-pill status-pill--completed">Completed</span></div>
+            <div class="trip-card__meta"><span>${t.busId || ''}</span><span>Rs. ${t.farePaid ?? '—'}</span><span>${t.timestamp ? new Date(t.timestamp).toLocaleDateString() : ''}</span></div>
+          </div>
+        `).join('');
+      }
+      el.innerHTML = html || '<div class="state-block"><span class="state-block__title">No trips yet.</span></div>';
+    } catch(e) {
+      console.error("Trip history fetch error: ", e);
+      el.innerHTML = '<div class="state-block"><span class="state-block__title">Unable to load data. Please try again.</span></div>';
+    }
+  }
+
+  // ============================================================
+  // Plan journey
+  // ============================================================
   const planBtn = document.getElementById('planBtn');
   planBtn.addEventListener('click', () => {
+    if (fromSelect.value === toSelect.value) {
+      plannerError.classList.add('is-visible');
+      return;
+    }
+    plannerError.classList.remove('is-visible');
+    document.getElementById('journeySummaryText').textContent = `Route 138 · ${fromSelect.value} → ${toSelect.value}`;
     document.getElementById('journeySummary').classList.add('is-visible');
     document.getElementById('results').classList.add('is-visible');
+    setJourneyState(0);
     fetchBusesForRoute();
-    startJourneySimulation();
+    addNotification('Journey planned. Choose a bus to continue.');
+    renderTripHistory();
   });
 
-  // --- Timeline Simulation ---
+  // ============================================================
+  // Timeline simulation (starts once boarded, clearly marked as demo)
+  // ============================================================
   const haltsData = [
     { name: "Gampaha", time: "07:00 AM" }, { name: "Kadawatha", time: "07:30 AM" },
     { name: "Kiribathgoda", time: "07:45 AM" }, { name: "Colombo Fort", time: "08:30 AM" }
   ];
   let currentHaltIndex = 0;
   let hasBoarded = false;
+  let hasExited = false;
+  let simIntervalId = null;
 
   function renderTimeline() {
     const timelineEl = document.getElementById('timeline');
@@ -411,69 +1050,107 @@
       timelineEl.appendChild(row);
     });
     document.getElementById('timelineProgress').style.height = `${(currentHaltIndex / (haltsData.length - 1)) * 100}%`;
-    if (currentHaltIndex === haltsData.length - 1 && hasBoarded) {
+    if (currentHaltIndex === haltsData.length - 1 && hasBoarded && !hasExited) {
       document.getElementById('exitPrompt').style.display = 'flex';
+      setJourneyState(6); // arrived
     }
   }
 
   function startJourneySimulation() {
     currentHaltIndex = 0;
     renderTimeline();
-    setInterval(() => {
+    if (simIntervalId) clearInterval(simIntervalId);
+    simIntervalId = setInterval(() => {
       if (currentHaltIndex < haltsData.length - 1) {
         currentHaltIndex++;
         renderTimeline();
+      } else {
+        clearInterval(simIntervalId);
       }
     }, 3200);
   }
 
-  // --- Board & Exit ---
+  // ============================================================
+  // Board & Exit (with duplicate-action guards)
+  // ============================================================
   document.getElementById('boardBtn').addEventListener('click', () => {
+    if (hasBoarded || journeyStateIndex < 3) return; // must be "ready to board" first
     hasBoarded = true;
     document.getElementById('boardPrompt').style.display = 'none';
     document.getElementById('boardingNote').classList.add('is-visible');
+    setJourneyState(4);
+    renderBusList(); // lock bus selection
+    addNotification('Journey started — you have boarded the bus.');
+    setTimeout(() => setJourneyState(5), 400); // journey in progress
+    startJourneySimulation();
+    renderTripHistory();
   });
 
   document.getElementById('exitBtn').addEventListener('click', async () => {
+    if (!hasBoarded || hasExited) return; // cannot exit before boarding / twice
+    hasExited = true;
     document.getElementById('exitPrompt').style.display = 'none';
     document.getElementById('paymentNote').classList.add('is-visible');
     document.getElementById('lastMileCard').classList.remove('is-locked');
     document.getElementById('lastMileLocked').style.display = 'none';
     document.getElementById('lastMileActive').classList.add('is-visible');
+    setJourneyState(7); // tapped out
 
-    if(db) {
+    const selectedBus = busesData.find(b => b.id === selectedBusId);
+    if (db) {
       try {
         await addDoc(collection(db, COL.tickets), {
           passengerId: currentPassengerId,
-          busId: busesData[0]?.id || "bus_WPND4567",
+          busId: selectedBus?.id || busesData[0]?.id || "bus_WPND4567",
           routeId: "route_138",
-          farePaid: 180,
-          ownerNetPayout: 158.4,
+          farePaid: selectedBus?.fare || 180,
+          ownerNetPayout: Math.round((selectedBus?.fare || 180) * 0.88 * 100) / 100,
           paymentMethod: "card",
+          status: "completed",
           timestamp: new Date().toISOString()
         });
       } catch(e) { console.error("Ticket write error: ", e); }
     }
+    setTimeout(() => {
+      setJourneyState(8); // payment completed
+      addNotification('Payment completed. Last-mile ride unlocked.');
+      setTimeout(() => setJourneyState(9), 300); // last mile unlocked
+      renderTripHistory();
+      renderTicketHistory();
+    }, 500);
   });
 
-  // --- PickMe Ride Simulation (Firestore-driven state, not a hardcoded timer) ---
-  // Requesting a ride writes a "searching" ride doc. The UI never flips itself —
-  // it only reacts to onSnapshot updates on that doc, the same way it would if a
-  // real PickMe driver app / backend changed the ride's status.
+  // ============================================================
+  // PickMe Ride Simulation (Firestore-driven state, not a hardcoded timer)
+  // ============================================================
   let firstMileRideId = null;
   let firstMileUnsub = null;
+  let firstMileRequested = false;
+  let selectedVehicle = 'Tuk-Tuk';
+
+  document.querySelectorAll('.ride-toggle button[data-vehicle]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.ride-toggle button[data-vehicle]').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      selectedVehicle = btn.dataset.vehicle;
+    });
+  });
 
   function renderRideStatus(ride) {
     const el = document.getElementById('rideStatus');
     el.classList.add('is-visible');
     if (ride.status === 'matched') {
-      el.innerHTML = `<span class="ride-status__avatar">${ride.driverInitials || 'NS'}</span><div><p class="ride-status__title">${ride.driverName || 'Nimal S.'} is on the way</p><p class="card__desc" style="margin:0;">${ride.vehicle || 'Tuk WP CAB-4521'} · ${ride.etaMin ?? 4} min</p></div>`;
+      el.innerHTML = `<span class="ride-status__avatar">${ride.driverInitials || 'NS'}</span><div><p class="ride-status__title">${ride.driverName || 'Nimal S.'} is on the way</p><p class="card__desc" style="margin:0;">${ride.vehicle || 'Tuk WP CAB-4521'} · ${ride.etaMin ?? 4} min · <span class="demo-badge">Demo driver</span></p></div>`;
+      addNotification('A PickMe driver has been matched for your first-mile ride.');
     } else {
       el.innerHTML = '<div class="ride-status__spinner"></div><div class="ride-status__text"><p class="ride-status__title">Finding a nearby driver…</p></div>';
     }
   }
 
   document.getElementById('requestRideBtn').addEventListener('click', async () => {
+    if (firstMileRequested) return; // prevent duplicate requests
+    firstMileRequested = true;
+    document.getElementById('requestRideBtn').disabled = true;
     document.getElementById('rideStatus').classList.add('is-visible');
     renderRideStatus({ status: 'searching' });
 
@@ -486,7 +1163,7 @@
           leg: 'first-mile',
           pickup: 'Current location',
           dropoff: 'Kadawatha Bus Stand',
-          vehicleType: 'Tuk-Tuk',
+          vehicleType: selectedVehicle,
           status: 'searching',
           requestedAt: serverTimestamp()
         });
@@ -504,7 +1181,7 @@
             status: 'matched',
             driverName: 'Nimal S.',
             driverInitials: 'NS',
-            vehicle: 'Tuk WP CAB-4521',
+            vehicle: `${selectedVehicle} WP CAB-4521`,
             etaMin: 4
           }).catch(e => console.error("Firestore ride match update error: ", e));
         }, 2000);
@@ -520,27 +1197,175 @@
   document.getElementById('bookLastMileBtn').addEventListener('click', () => {
     document.getElementById('bookLastMileBtn').style.display = 'none';
     document.getElementById('lastMileBookedWrap').style.display = 'block';
+    addNotification('Last-mile ride booked (demo).');
   });
 
-  // --- Wallet / Tickets Modal ---
-  document.getElementById('walletBtn').addEventListener('click', () => document.getElementById('modalOverlay').classList.add('is-open'));
+  // ============================================================
+  // Wallet / Payment Modal
+  // ============================================================
+  document.getElementById('walletBtn').addEventListener('click', () => {
+    document.getElementById('walletPaySuccess').classList.remove('is-visible');
+    document.getElementById('modalOverlay').classList.add('is-open');
+  });
   document.getElementById('modalCloseBtn').addEventListener('click', () => document.getElementById('modalOverlay').classList.remove('is-open'));
-  document.getElementById('cardConfirmBtn').addEventListener('click', () => document.getElementById('modalOverlay').classList.remove('is-open'));
-  document.getElementById('qrConfirmBtn').addEventListener('click', () => document.getElementById('modalOverlay').classList.remove('is-open'));
+  document.getElementById('payMethodCard').addEventListener('click', () => {
+    document.getElementById('payMethodCard').classList.add('is-active');
+    document.getElementById('payMethodQr').classList.remove('is-active');
+    document.getElementById('payPanelCard').classList.add('is-visible');
+    document.getElementById('payPanelQr').classList.remove('is-visible');
+  });
+  document.getElementById('payMethodQr').addEventListener('click', () => {
+    document.getElementById('payMethodQr').classList.add('is-active');
+    document.getElementById('payMethodCard').classList.remove('is-active');
+    document.getElementById('payPanelQr').classList.add('is-visible');
+    document.getElementById('payPanelCard').classList.remove('is-visible');
+  });
+  function simulateWalletPayment() {
+    document.getElementById('walletPaySuccess').classList.add('is-visible');
+    addNotification('Demo payment successful via wallet.');
+    setTimeout(() => document.getElementById('modalOverlay').classList.remove('is-open'), 900);
+  }
+  document.getElementById('cardConfirmBtn').addEventListener('click', simulateWalletPayment);
+  document.getElementById('qrConfirmBtn').addEventListener('click', simulateWalletPayment);
 
-  // --- Navigation Tabs ---
+  // ============================================================
+  // Profile: view / edit / save
+  // ============================================================
+  const profileFields = ['profileName', 'profilePhone', 'profileEmail', 'profileHome'];
+  const editProfileBtn = document.getElementById('editProfileBtn');
+  const saveProfileBtn = document.getElementById('saveProfileBtn');
+  const profileForm = document.getElementById('profileForm');
+  const profileError = document.getElementById('profileError');
+  const profileToast = document.getElementById('profileToast');
+
+  function initials(name) {
+    return name.trim().split(/\s+/).map(p => p[0]).slice(0, 2).join('').toUpperCase() || 'U';
+  }
+
+  async function loadProfile() {
+    if (!db) return;
+    try {
+      const ref = doc(db, COL.passengers, currentPassengerId);
+      const snap = await getDoc(ref);
+      if (snap.exists()) {
+        const d = snap.data();
+        if (d.name) document.getElementById('profileName').value = d.name;
+        if (d.phone) document.getElementById('profilePhone').value = d.phone;
+        if (d.email) document.getElementById('profileEmail').value = d.email;
+        if (d.home) document.getElementById('profileHome').value = d.home;
+        applyProfileToHeader();
+      }
+    } catch(e) { console.error("Profile load error: ", e); }
+  }
+
+  function applyProfileToHeader() {
+    const name = document.getElementById('profileName').value || 'Passenger';
+    document.getElementById('profileDisplayName').textContent = name;
+    document.getElementById('profileAvatar').textContent = initials(name);
+    document.getElementById('savedHomeText').textContent = document.getElementById('profileHome').value || '—';
+  }
+
+  editProfileBtn.addEventListener('click', () => {
+    profileFields.forEach(id => document.getElementById(id).disabled = false);
+    editProfileBtn.style.display = 'none';
+    saveProfileBtn.style.display = 'block';
+    profileToast.classList.remove('is-visible');
+    document.getElementById('profileName').focus();
+  });
+
+  profileForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('profileName').value.trim();
+    const email = document.getElementById('profileEmail').value.trim();
+    const emailOk = /^\S+@\S+\.\S+$/.test(email);
+    if (!name || !emailOk) {
+      profileError.classList.add('is-visible');
+      return;
+    }
+    profileError.classList.remove('is-visible');
+
+    const profileData = {
+      name,
+      phone: document.getElementById('profilePhone').value.trim(),
+      email,
+      home: document.getElementById('profileHome').value.trim(),
+    };
+
+    if (db) {
+      try {
+        await setDoc(doc(db, COL.passengers, currentPassengerId), profileData, { merge: true });
+      } catch(err) { console.error("Profile save error: ", err); }
+    }
+
+    profileFields.forEach(id => document.getElementById(id).disabled = true);
+    editProfileBtn.style.display = 'block';
+    saveProfileBtn.style.display = 'none';
+    applyProfileToHeader();
+    profileToast.classList.add('is-visible');
+    setTimeout(() => profileToast.classList.remove('is-visible'), 3000);
+  });
+
+  document.getElementById('addPaymentBtn').addEventListener('click', () => {
+    document.getElementById('modalOverlay').classList.add('is-open');
+  });
+
+  // Help & Support: FAQ accordion
+  document.querySelectorAll('.faq-q').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.closest('.faq-item');
+      const wasOpen = item.classList.contains('is-open');
+      document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('is-open'));
+      if (!wasOpen) item.classList.add('is-open');
+    });
+  });
+
+  document.getElementById('contactSupportBtn').addEventListener('click', () => {
+    const t = document.getElementById('supportToast');
+    t.textContent = "Demo: a support ticket would open here (support@transittrack.demo).";
+    t.classList.add('is-visible');
+    setTimeout(() => t.classList.remove('is-visible'), 3500);
+  });
+  document.getElementById('reportProblemBtn').addEventListener('click', () => {
+    const t = document.getElementById('supportToast');
+    t.textContent = "Thanks — our demo support team has logged this.";
+    t.classList.add('is-visible');
+    setTimeout(() => t.classList.remove('is-visible'), 3500);
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    const confirmed = window.confirm('Log out of TransitTrack? This is a demo action.');
+    if (!confirmed) return;
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('is-active'));
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('is-active'));
+    document.querySelector('.nav-btn[data-screen="screenHome"]').classList.add('is-active');
+    document.getElementById('screenHome').classList.add('is-active');
+    addNotification('You have been logged out (demo).');
+  });
+
+  // ============================================================
+  // Navigation Tabs
+  // ============================================================
   document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('is-active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('is-active'));
       btn.classList.add('is-active');
       document.getElementById(btn.dataset.screen).classList.add('is-active');
-      if (btn.dataset.screen === 'screenTickets') fetchTicketOptions();
+      if (btn.dataset.screen === 'screenTickets') { fetchTicketOptions(); renderTicketHistory(); }
+      if (btn.dataset.screen === 'screenTrips') { renderTripHistory(); }
     });
   });
 
+  // ============================================================
+  // Init
+  // ============================================================
+  renderStepper();
   renderBusList();
   fetchTicketOptions();
+  renderTicketHistory();
+  renderTripHistory();
+  loadProfile();
+  applyProfileToHeader();
 </script>
 </body>
 </html>
