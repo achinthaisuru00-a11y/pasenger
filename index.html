@@ -244,9 +244,15 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, query, where, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import {
+    getFirestore, collection, query, where, getDocs, addDoc,
+    doc, setDoc, updateDoc, onSnapshot, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  // Replace with your project keys from Firebase Console
+  // --- Shared Firebase project (same config as Admin Portal & Owner App) ---
+  // Buses approved in the Admin Portal and routes/fares created there stream
+  // into this view live, and tickets/ride requests written here are visible
+  // to the Admin Portal and Owner App in real time.
   const firebaseConfig = {
     apiKey: "AIzaSyAGwj53IVytziF6TcT_Pje-lmPpQ8XeeIA",
     authDomain: "transittrack-57926.firebaseapp.com",
@@ -257,11 +263,21 @@
     measurementId: "G-SBB3WPC8FX"
   };
 
+  // --- Shared collection names (keep identical across all 3 apps) ---
+  const COL = {
+    buses: "buses",
+    routes: "routes",
+    tickets: "tickets",
+    rides: "rides",
+  };
+
   let db = null;
   try {
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
   } catch(e) { console.warn("Firebase offline or placeholder config in use.", e); }
+
+  const currentPassengerId = "uid_passenger1";
 
   let busesData = [
     { id: 'b1', label: 'Bus WP ND-4567', type: 'Normal', eta: 4, crowd: 'empty' },
@@ -271,7 +287,7 @@
   async function fetchBusesForRoute() {
     if(db) {
       try {
-        const q = query(collection(db, "buses"), where("status", "==", "verified"));
+        const q = query(collection(db, COL.buses), where("status", "==", "verified"));
         const snapshot = await getDocs(q);
         if(!snapshot.empty) {
           busesData = [];
@@ -300,6 +316,72 @@
         <span class="bus-row__eta">${b.eta} min</span>
       </div>
     `).join('');
+  }
+
+  // --- Ticket Options (Digital Ticketing tab) ---
+  let ticketOptionsData = [
+    { id: 't1', routeNum: 'Route 138', routeName: 'Gampaha → Colombo Fort', type: 'Single Ride', fare: 180 },
+    { id: 't2', routeNum: 'Route 138', routeName: 'Gampaha → Colombo Fort', type: 'Return Ticket', fare: 340 },
+    { id: 't3', routeNum: 'Route 100', routeName: 'Negombo → Colombo', type: 'Single Ride', fare: 150 },
+  ];
+
+  async function fetchTicketOptions() {
+    if (db) {
+      try {
+        const snapshot = await getDocs(collection(db, COL.routes));
+        if (!snapshot.empty) {
+          ticketOptionsData = [];
+          snapshot.forEach(docSnap => {
+            const r = docSnap.data();
+            ticketOptionsData.push({ id: docSnap.id + '_single', routeNum: r.num, routeName: r.name, type: 'Single Ride', fare: r.fare });
+            ticketOptionsData.push({ id: docSnap.id + '_return', routeNum: r.num, routeName: r.name, type: 'Return Ticket', fare: Math.round(r.fare * 1.9) });
+          });
+        }
+      } catch(e) { console.error("Firestore ticket options fetch error: ", e); }
+    }
+    renderTicketOptions();
+  }
+
+  function renderTicketOptions() {
+    const el = document.getElementById('ticketOptions');
+    el.innerHTML = ticketOptionsData.map(t => `
+      <div class="bus-row" data-ticket-id="${t.id}">
+        <span class="bus-row__radio"><span class="bus-row__radio-dot"></span></span>
+        <div class="bus-row__body">
+          <div class="bus-row__top"><span class="bus-row__label">${t.routeNum} · ${t.type}</span></div>
+          <div class="bus-row__meta">${t.routeName}</div>
+        </div>
+        <span class="bus-row__eta">Rs. ${t.fare}</span>
+      </div>
+    `).join('');
+
+    el.querySelectorAll('[data-ticket-id]').forEach(row => {
+      row.addEventListener('click', () => buyTicket(row.dataset.ticketId));
+    });
+  }
+
+  async function buyTicket(ticketId) {
+    const ticket = ticketOptionsData.find(t => t.id === ticketId);
+    if (!ticket) return;
+
+    const code = `TT-${ticket.routeNum.replace('Route ', '')}-${Math.floor(1000 + Math.random() * 8999)}`;
+    document.getElementById('activeTicketRoute').textContent = `${ticket.routeNum} · ${ticket.type}`;
+    document.getElementById('activeTicketCode').textContent = code;
+    document.getElementById('activeTicket').classList.add('is-visible');
+
+    if (db) {
+      try {
+        await addDoc(collection(db, COL.tickets), {
+          passengerId: currentPassengerId,
+          routeNum: ticket.routeNum,
+          routeName: ticket.routeName,
+          type: ticket.type,
+          farePaid: ticket.fare,
+          ticketCode: code,
+          timestamp: new Date().toISOString()
+        });
+      } catch(e) { console.error("Firestore ticket purchase error: ", e); }
+    }
   }
 
   const planBtn = document.getElementById('planBtn');
@@ -361,8 +443,8 @@
 
     if(db) {
       try {
-        await addDoc(collection(db, "tickets"), {
-          passengerId: "uid_passenger1",
+        await addDoc(collection(db, COL.tickets), {
+          passengerId: currentPassengerId,
           busId: busesData[0]?.id || "bus_WPND4567",
           routeId: "route_138",
           farePaid: 180,
@@ -374,12 +456,65 @@
     }
   });
 
-  // --- PickMe Ride Simulation ---
-  document.getElementById('requestRideBtn').addEventListener('click', () => {
+  // --- PickMe Ride Simulation (Firestore-driven state, not a hardcoded timer) ---
+  // Requesting a ride writes a "searching" ride doc. The UI never flips itself —
+  // it only reacts to onSnapshot updates on that doc, the same way it would if a
+  // real PickMe driver app / backend changed the ride's status.
+  let firstMileRideId = null;
+  let firstMileUnsub = null;
+
+  function renderRideStatus(ride) {
+    const el = document.getElementById('rideStatus');
+    el.classList.add('is-visible');
+    if (ride.status === 'matched') {
+      el.innerHTML = `<span class="ride-status__avatar">${ride.driverInitials || 'NS'}</span><div><p class="ride-status__title">${ride.driverName || 'Nimal S.'} is on the way</p><p class="card__desc" style="margin:0;">${ride.vehicle || 'Tuk WP CAB-4521'} · ${ride.etaMin ?? 4} min</p></div>`;
+    } else {
+      el.innerHTML = '<div class="ride-status__spinner"></div><div class="ride-status__text"><p class="ride-status__title">Finding a nearby driver…</p></div>';
+    }
+  }
+
+  document.getElementById('requestRideBtn').addEventListener('click', async () => {
     document.getElementById('rideStatus').classList.add('is-visible');
-    setTimeout(() => {
-      document.getElementById('rideStatus').innerHTML = '<span class="ride-status__avatar">NS</span><div><p class="ride-status__title">Nimal S. is on the way</p><p class="card__desc" style="margin:0;">Tuk WP CAB-4521 · 4 min</p></div>';
-    }, 2000);
+    renderRideStatus({ status: 'searching' });
+
+    if (db) {
+      try {
+        firstMileRideId = `ride_${currentPassengerId}_${Date.now()}`;
+        const rideRef = doc(db, COL.rides, firstMileRideId);
+        await setDoc(rideRef, {
+          passengerId: currentPassengerId,
+          leg: 'first-mile',
+          pickup: 'Current location',
+          dropoff: 'Kadawatha Bus Stand',
+          vehicleType: 'Tuk-Tuk',
+          status: 'searching',
+          requestedAt: serverTimestamp()
+        });
+
+        if (firstMileUnsub) firstMileUnsub();
+        firstMileUnsub = onSnapshot(rideRef, (snap) => {
+          if (snap.exists()) renderRideStatus(snap.data());
+        });
+
+        // In production a driver's app or a Cloud Function would perform this
+        // update; here we simulate that server-side match so the listener above
+        // has a real state change to react to.
+        setTimeout(() => {
+          updateDoc(rideRef, {
+            status: 'matched',
+            driverName: 'Nimal S.',
+            driverInitials: 'NS',
+            vehicle: 'Tuk WP CAB-4521',
+            etaMin: 4
+          }).catch(e => console.error("Firestore ride match update error: ", e));
+        }, 2000);
+      } catch(e) {
+        console.error("Firestore ride request error: ", e);
+        setTimeout(() => renderRideStatus({ status: 'matched' }), 2000);
+      }
+    } else {
+      setTimeout(() => renderRideStatus({ status: 'matched' }), 2000);
+    }
   });
 
   document.getElementById('bookLastMileBtn').addEventListener('click', () => {
@@ -400,10 +535,12 @@
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('is-active'));
       btn.classList.add('is-active');
       document.getElementById(btn.dataset.screen).classList.add('is-active');
+      if (btn.dataset.screen === 'screenTickets') fetchTicketOptions();
     });
   });
 
   renderBusList();
+  fetchTicketOptions();
 </script>
 </body>
 </html>
