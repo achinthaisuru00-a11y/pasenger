@@ -98,6 +98,24 @@
   .jstep.is-done .jstep__label{ color: var(--green); }
   .status-banner{ display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding: 9px 12px; background: var(--paper); border-radius: var(--radius-sm); font-size: 0.78rem; font-weight: 600; color: var(--ink); }
 
+  /* Live bus tracking map */
+  .live-map{ margin-top: 4px; }
+  .live-map__frame{ background: linear-gradient(180deg,#EEF2F8,#E6ECF5); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 14px 10px 10px; overflow: hidden; }
+  .live-map__svg{ width: 100%; height: auto; display: block; overflow: visible; }
+  .live-map__casing{ fill: none; stroke: #D7DEE7; stroke-width: 11; stroke-linecap: round; stroke-linejoin: round; }
+  .live-map__route{ fill: none; stroke: var(--amber); stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1 10; }
+  .live-map__stop circle{ fill: var(--ink); stroke: #fff; stroke-width: 2; }
+  .live-map__stop--selected circle{ fill: var(--ride); r: 6.5; stroke-width: 2.5; }
+  .live-map__label{ font-family: var(--font-body); font-size: 10.5px; font-weight: 700; fill: var(--ink-soft); }
+  .live-map__bus{ fill: var(--amber); stroke: #fff; stroke-width: 3; transition: cx 0.7s ease, cy 0.7s ease; animation: liveBusPulse 1.8s ease-in-out infinite; }
+  @keyframes liveBusPulse{ 0%,100%{ opacity: 1; } 50%{ opacity: 0.72; } }
+  .live-map__legend{ display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+  .live-map__legend-item{ display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--slate); font-weight: 600; }
+  .live-map__dot{ width: 9px; height: 9px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+  .live-map__dot--bus{ background: var(--amber); }
+  .live-map__dot--stop{ background: var(--ink); }
+  .live-map__dot--selected{ background: var(--ride); }
+
   .filter-chips{ display: flex; gap: 7px; margin-bottom: 12px; flex-wrap: wrap; }
   .filter-chip{ padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--surface); color: var(--slate); font-size: 0.76rem; font-weight: 600; cursor: pointer; }
   .filter-chip.is-active{ border-color: var(--ink); background: var(--ink); color: #fff; }
@@ -303,6 +321,37 @@
           <h2 class="card__title" style="margin-bottom:12px;">Journey status</h2>
           <div class="journey-stepper" id="journeyStepper"></div>
           <p class="status-banner" id="statusBanner">Journey planned. Choose a bus to continue.</p>
+
+          <div class="live-map" id="liveMap">
+            <div class="live-map__frame">
+              <svg class="live-map__svg" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Live map of Route 138 from Gampaha to Colombo Fort">
+                <defs>
+                  <marker id="liveMapArrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+                    <path d="M0,0 L10,5 L0,10 Z" fill="#FFB627"></path>
+                  </marker>
+                </defs>
+                <path class="live-map__casing" d="M40,225 C80,205 100,190 140,165 C175,143 195,130 230,110 C270,88 310,65 350,42"></path>
+                <path class="live-map__route" marker-end="url(#liveMapArrow)" d="M40,225 C80,205 100,190 140,165 C175,143 195,130 230,110 C270,88 310,65 344,45"></path>
+
+                <text x="40" y="245" class="live-map__label" text-anchor="start">Gampaha</text>
+                <text x="140" y="148" class="live-map__label" text-anchor="end">Kadawatha</text>
+                <text x="230" y="96" class="live-map__label" text-anchor="start">Kiribathgoda</text>
+                <text x="355" y="26" class="live-map__label" text-anchor="end">Colombo Fort</text>
+
+                <g class="live-map__stop" data-stop="0"><circle cx="40" cy="225" r="5"></circle></g>
+                <g class="live-map__stop live-map__stop--selected" data-stop="1"><circle cx="140" cy="165" r="6.5"></circle></g>
+                <g class="live-map__stop" data-stop="2"><circle cx="230" cy="110" r="5"></circle></g>
+                <g class="live-map__stop" data-stop="3"><circle cx="355" cy="40" r="5"></circle></g>
+
+                <circle id="liveBusMarker" class="live-map__bus" cx="40" cy="225" r="8"></circle>
+              </svg>
+            </div>
+            <div class="live-map__legend">
+              <span class="live-map__legend-item"><span class="live-map__dot live-map__dot--bus"></span>Live bus</span>
+              <span class="live-map__legend-item"><span class="live-map__dot live-map__dot--stop"></span>Bus stop</span>
+              <span class="live-map__legend-item"><span class="live-map__dot live-map__dot--selected"></span>Your stop</span>
+            </div>
+          </div>
         </section>
 
         <section class="card" id="busListCard">
@@ -1039,6 +1088,19 @@
   let hasExited = false;
   let simIntervalId = null;
 
+  // Live tracking map: stop coordinates in the same order as haltsData
+  const mapStopCoords = [
+    { x: 40, y: 225 }, { x: 140, y: 165 }, { x: 230, y: 110 }, { x: 355, y: 40 }
+  ];
+  function updateBusMapPosition(index) {
+    const marker = document.getElementById('liveBusMarker');
+    if (!marker) return;
+    const i = Math.max(0, Math.min(index, mapStopCoords.length - 1));
+    const pos = mapStopCoords[i];
+    marker.setAttribute('cx', pos.x);
+    marker.setAttribute('cy', pos.y);
+  }
+
   function renderTimeline() {
     const timelineEl = document.getElementById('timeline');
     timelineEl.querySelectorAll('.halt').forEach(el => el.remove());
@@ -1050,6 +1112,7 @@
       timelineEl.appendChild(row);
     });
     document.getElementById('timelineProgress').style.height = `${(currentHaltIndex / (haltsData.length - 1)) * 100}%`;
+    updateBusMapPosition(currentHaltIndex);
     if (currentHaltIndex === haltsData.length - 1 && hasBoarded && !hasExited) {
       document.getElementById('exitPrompt').style.display = 'flex';
       setJourneyState(6); // arrived
@@ -1360,6 +1423,7 @@
   // Init
   // ============================================================
   renderStepper();
+  updateBusMapPosition(0);
   renderBusList();
   fetchTicketOptions();
   renderTicketHistory();
